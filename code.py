@@ -16,12 +16,10 @@ pin.pull = digitalio.Pull.DOWN   # Ensure a known state when nothing is connecte
 led = digitalio.DigitalInOut(board.LED)
 led.direction = digitalio.Direction.OUTPUT
 
-while True:
-    if pin.value:
-        led.value = True
-        payload.payload()
+if pin.value:
+    led.value = True
+    payload.payload()
             
-    else:
-        led.value = False
-
+else:
+    led.value = False
     time.sleep(0.5)
