@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ducky Script to Python Converter</title>
+<style>
+    body {
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        background: #f0f2f5;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        padding: 20px;
+        color: #333;
+    }
+
+    h1 {
+        margin-bottom: 20px;
+        color: #4a90e2;
+    }
+
+    textarea {
+        width: 90%;
+        max-width: 800px;
+        padding: 10px;
+        margin-bottom: 10px;
+        border-radius: 8px;
+        border: 1px solid #ccc;
+        font-family: monospace;
+        font-size: 14px;
+        resize: vertical;
+    }
+
+    button {
+        padding: 10px 20px;
+        margin: 5px;
+        border: none;
+        border-radius: 8px;
+        background-color: #4a90e2;
+        color: #fff;
+        cursor: pointer;
+        font-weight: bold;
+        transition: background-color 0.2s;
+    }
+
+    button:hover {
+        background-color: #357ab8;
+    }
+
+    .container {
+        width: 100%;
+        max-width: 900px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
+</style>
+</head>
+<body>
+<div class="container">
+    <h1>Ducky Script to Python Converter</h1>
+    <textarea id="duckyScriptInput" rows="15" placeholder="Paste your Ducky Script here..."></textarea>
+    <button onclick="convertDuckyToPython()">Convert to Python</button>
+
+    <h2>Converted Python Script</h2>
+    <textarea id="pythonScriptOutput" rows="20" readonly></textarea>
+    <button onclick="downloadPythonScript()">Download Python Script</button>
+</div>
+
+<script>
+const keycodeMap = {
+    "ENTER": "Keycode.ENTER", "GUI": "Keycode.GUI", "SHIFT": "Keycode.SHIFT",
+    "CTRL": "Keycode.CONTROL", "ALT": "Keycode.ALT", "TAB": "Keycode.TAB",
+    "ESC": "Keycode.ESCAPE", "SPACE": "Keycode.SPACEBAR", "DELETE": "Keycode.DELETE",
+    "BACKSPACE": "Keycode.BACKSPACE", "UP": "Keycode.UP_ARROW", "DOWN": "Keycode.DOWN_ARROW",
+    "LEFT": "Keycode.LEFT_ARROW", "RIGHT": "Keycode.RIGHT_ARROW", "CAPSLOCK": "Keycode.CAPS_LOCK",
+    "F1": "Keycode.F1", "F2": "Keycode.F2", "F3": "Keycode.F3", "F4": "Keycode.F4",
+    "F5": "Keycode.F5", "F6": "Keycode.F6", "F7": "Keycode.F7", "F8": "Keycode.F8",
+    "F9": "Keycode.F9", "F10": "Keycode.F10", "F11": "Keycode.F11", "F12": "Keycode.F12",
+    "NUMLOCK": "Keycode.NUM_LOCK", "SCROLLLOCK": "Keycode.SCROLL_LOCK", "SPACEBAR": "Keycode.SPACEBAR"
+};
+
+const customCommandMap = {
+    "DEFINE": "# Custom command DEFINE placeholder",
+    "ATTACK_F": "# Custom command ATTACK_F placeholder",
+    "STRINGLN": "# Custom command STRINGLN placeholder"
+    // add more if needed
+};
+
+function parseKeycode(key) {
+    return keycodeMap[key.toUpperCase()] || `Keycode.${key.toUpperCase()}`;
+}
+
+function parseKeys(parts) {
+    return parts.map(part => parseKeycode(part)).join(', ');
+}
+
+function convertDuckyToPython() {
+    const duckyScript = document.getElementById("duckyScriptInput").value;
+    const pythonScript = [
+        "import time",
+        "import usb_hid",
+        "from adafruit_hid.keyboard import Keyboard",
+        "from adafruit_hid.keycode import Keycode",
+        "from adafruit_hid.keyboard_layout_us import KeyboardLayoutUS",
+        "",
+        "# Initialize the keyboard",
+        "keyboard = Keyboard(usb_hid.devices)",
+        "keyboard_layout = KeyboardLayoutUS(keyboard)",
+        "",
+        "def payload():"
+    ];
+
+    const lines = duckyScript.split('\n');
+    lines.forEach(line => {
+        line = line.trim();
+        if (!line) return;
+        const parts = line.split(' ');
+        const command = parts[0].toUpperCase();
+        let pyLine = "";
+
+        if (command === "DELAY") {
+            const delayTime = parseInt(parts[1]) / 1000.0;
+            pyLine = `time.sleep(${delayTime})`;
+        } else if (command === "STRING") {
+            const stringContent = parts.slice(1).join(' ');
+            pyLine = `keyboard_layout.write("${stringContent}")`;
+        } else if (command === "REM") {
+            const commentContent = parts.slice(1).join(' ');
+            pyLine = `# ${commentContent}`;
+        } else if (keycodeMap[command]) {
+            const keysStr = parseKeys(parts);
+            pyLine = `keyboard.send(${keysStr})`;
+        } else if (customCommandMap[command]) {
+            pyLine = customCommandMap[command];
+        } else {
+            const keysStr = parseKeys(parts);
+            pyLine = `keyboard.send(${keysStr})`;
+        }
+
+        // Indent for function and add sleep
+        pythonScript.push("    " + pyLine);
+        pythonScript.push("    time.sleep(0.5)");
+    });
+
+    document.getElementById("pythonScriptOutput").value = pythonScript.join('\n');
+}
+
+function downloadPythonScript() {
+    const pythonScript = document.getElementById("pythonScriptOutput").value;
+    const blob = new Blob([pythonScript], { type: "text/plain;charset=utf-8" });
+    const link = document.createElement("a");
+    link.href = URL.createObjectURL(blob);
+    link.download = "payload.py";
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+}
+</script>
+</body>
+</html>
