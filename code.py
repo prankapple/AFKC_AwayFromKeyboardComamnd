@@ -22,4 +22,4 @@ if pin.value:
             
 else:
     led.value = False
-    time.sleep(0.5)
+time.sleep(0.1)
