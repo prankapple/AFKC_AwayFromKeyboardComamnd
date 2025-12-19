@@ -1,4 +1,4 @@
-# AFKC_AwayFromKeyboardComamnd
+# AFKC_AwayFromKeyboardCommand
 A simple HID device inspired from rubber ducky made from rasberry pi pico. This guide is for educational purposes only.
 
  ## Setup
